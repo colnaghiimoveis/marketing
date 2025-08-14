@@ -1,0 +1,42 @@
+@model IEnumerable<ColnaghiMarketingTools.Models.Campanha>
+@{
+    ViewData["Title"] = "Rascunhos";
+    Layout = "_Layout";
+}
+
+<div class="main-content-wrapper">
+    <h1 class="page-title">Rascunhos de Campanha</h1>
+    <div class="folder-list">
+        @if (!Model.Any())
+        {
+            <div class="unidades-placeholder">Nenhum rascunho encontrado.</div>
+        }
+        else
+        {
+            <div class="folder-list-header" style="display:flex;gap:24px;padding:0 8px 8px 44px;font-weight:600;color:#888;">
+                <div style="flex:2;">Nome</div>
+                <div style="flex:1;">Data de Criação</div>
+                <div style="width:160px;"></div>
+            </div>
+            @foreach (var campanha in Model)
+            {
+                <div class="folder-item">
+                    <div class="folder-icon"><i class="far fa-envelope"></i></div>
+                    <div class="folder-name" style="flex:2;">
+                        <b>@campanha.Nome</b><br />
+                        <span style="font-size:0.95em;color:#888;">@campanha.Pasta?.Nome</span>
+                    </div>
+                    <div class="folder-date" style="flex:1;align-self:center;">
+                        @campanha.DataCriacao.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:12px;width:160px;">
+                        <a asp-action="EditarCampanha" asp-route-id="@campanha.Id" class="btn-primary">Editar</a>
+                        <form asp-action="DeletarCampanha" asp-route-id="@campanha.Id" asp-route-returnUrl="@Url.Action("Rascunhos")" method="post" style="display:inline;">
+                            <button type="submit" class="folder-delete" onclick="return confirm('Tem certeza que deseja deletar esta campanha?');"><i class="fas fa-trash-alt"></i></button>
+                        </form>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div> 

@@ -1,0 +1,131 @@
+@model ColnaghiMarketingTools.Models.Campanha
+@{
+    ViewData["Title"] = "Editar Campanha";
+    Layout = "_Layout";
+}
+
+<div class="main-content-wrapper">
+    <div class="welcome-message">Bem vinda, Mayumi!</div>
+    <h1 class="page-title">Editar campanha</h1>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success" style="background: #d4edda; color: #155724; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <form asp-action="AtualizarCampanha" asp-controller="Home" method="post">
+        <input type="hidden" name="Id" value="@Model.Id" />
+
+        <section class="template-section">
+
+
+            <!-- Preview do Template -->
+            <div class="template-preview">
+
+                <div class="preview-content">
+                    <div class="email-preview">
+                        <!-- Logo Colnaghi -->
+                        <div class="preview-logo">
+                            <img src="~/img/Logo.png" alt="Colnaghi Logo" />
+                        </div>
+                        <hr class="preview-divider" />
+
+                        <!-- Título -->
+                        <div class="preview-title">
+                            <input type="text" name="Titulo" value="@Model.Titulo" placeholder="Adicione o título" class="preview-input" />
+                            <span class="edit-icon-preview"><i class="fas fa-pencil-alt"></i></span>
+                        </div>
+
+                        <!-- Chamada -->
+                        <div class="preview-chamada">
+                            <textarea name="Chamada" placeholder="Adicione a chamada" class="preview-textarea">@Model.Chamada</textarea>
+                            <span class="edit-icon-preview"><i class="fas fa-pencil-alt"></i></span>
+                        </div>
+
+                        <!-- Botão CTA -->
+                        <div class="preview-cta">
+                            <button type="button" class="btn-cta-vermelho">Conheça o Lançamento</button>
+                        </div>
+
+                        <!-- Corpo de Texto -->
+                        <div class="preview-corpo">
+                            <textarea name="CorpoTexto" placeholder="Adicione um corpo de texto" class="preview-textarea">@Model.CorpoTexto</textarea>
+                            <span class="edit-icon-preview"><i class="fas fa-pencil-alt"></i></span>
+                        </div>
+
+                        <!-- Seção Unidades -->
+                        <h3 class="unidades-titulo-vermelho">Unidades</h3>
+
+                        <div class="preview-unidades">
+                            <hr class="unidades-divider" />
+                            <div class="unidades-placeholder">
+                                <div class="adicionar-unidades-campos">
+                                    @{
+                                        int qtd = Model.TipoTemplate;
+                                        if (qtd != 2 && qtd != 4 && qtd != 6) { qtd = 2; }
+                                    }
+                                    @for (int i = 0; i < qtd; i++)
+                                    {
+                                        <input type="text" name="Imoveis[@i].CodigoImovel" maxlength="7" class="codigo-imovel-input" placeholder="Código do imóvel" value="@(Model.Imoveis != null && Model.Imoveis.Count > i ? Model.Imoveis[i].CodigoImovel : "")" />
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <h2 class="section-title">Configuração do Template</h2>
+
+                        <div class="element-position-section">
+                            <label class="element-position-label">Selecione a posição dos elementos</label>
+                            <div class="element-position-options">
+                                <label class="element-position-option">
+                                    <input type="radio" name="TipoExibicao" value="2" @(Model.TipoExibicao == 2 ? "checked" : "") />
+                                    <img src="~/img/dois_por_linha.png" alt="Dois imóveis por linha" />
+                                    <span>Dois imóveis por linha</span>
+                                </label>
+                                <label class="element-position-option">
+                                    <input type="radio" name="TipoExibicao" value="1" @(Model.TipoExibicao == 1 ? "checked" : "") />
+                                    <img src="~/img/um_por_linha.png" alt="Um imóvel por linha" />
+                                    <span>Um imóvel por linha</span>
+                                </label>
+                               
+                            </div>
+                        </div>
+
+                        <!-- Rodapé -->
+                        <div class="preview-rodape">
+                            <textarea name="Rodape" placeholder="Adicione o rodapé" class="preview-textarea">@Model.Rodape</textarea>
+                            <span class="edit-icon-preview"><i class="fas fa-pencil-alt"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="button-container">
+            <a asp-controller="Home" asp-action="Index" class="btn-secondary">Voltar</a>
+            <button type="submit" class="btn-primary">Salvar Alterações</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Controles de posição do preview
+        document.querySelectorAll('.btn-preview-control').forEach(button => {
+            button.addEventListener('click', function () {
+                // Remove active de todos os botões
+                document.querySelectorAll('.btn-preview-control').forEach(btn => btn.classList.remove('active'));
+                // Adiciona active ao botão clicado
+                this.classList.add('active');
+
+                // Aqui você pode adicionar lógica para alterar a posição dos elementos
+                const position = this.dataset.position;
+                console.log('Posição selecionada:', position);
+            });
+        });
+
+
+    </script>
+} 

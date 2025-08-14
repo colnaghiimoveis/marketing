@@ -1,0 +1,70 @@
+@{
+    ViewData["Title"] = "Login";
+    Layout = null;
+}
+
+<style>
+    .login-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: #f5f5f5;
+    }
+    .login-box {
+        background: #fff;
+        padding: 2rem 2.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .login-box img {
+        width: 120px;
+        margin-bottom: 1.5rem;
+    }
+    .login-box input {
+        width: 250px;
+        margin-bottom: 1rem;
+        padding: 0.7rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .login-box button {
+        width: 100%;
+        padding: 0.7rem;
+        background: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .login-box button:hover {
+        background: #0056b3;
+    }
+    .validation-summary-errors {
+        color: red;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="login-container">
+    <form class="login-box" asp-action="Login" method="post">
+        <img src="~/img/Logo.png" alt="Logo" />
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="validation-summary-errors">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <div>@error.ErrorMessage</div>
+                }
+            </div>
+        }
+        <input type="email" name="email" placeholder="E-mail" required />
+        <input type="password" name="senha" placeholder="Senha" required />
+        <button type="submit">Entrar</button>
+    </form>
+</div>

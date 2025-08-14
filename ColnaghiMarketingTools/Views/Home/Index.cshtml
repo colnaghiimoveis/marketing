@@ -1,0 +1,75 @@
+﻿@model IEnumerable<ColnaghiMarketingTools.Models.Pasta>
+@{
+    ViewData["Title"] = "Nova Campanha";
+    Layout = "_Layout"; // Usar o layout que criamos
+}
+
+<div class="main-content-wrapper">
+    <div class="welcome-message">Bem vinda, @User.Identity.Name!</div>
+    <h1 class="page-title">Nova campanha</h1>
+
+    <form asp-action="SalvarRascunho" asp-controller="Home" method="post">
+        <section class="info-section">
+            <h2 class="section-title">Informações obrigatórias</h2>
+            <div class="info-fields">
+                <div class="info-field">
+                    <label for="Nome">Nome da Campanha</label>
+                    <div class="input-icon">
+                        <input type="text" id="Nome" name="Nome" required />
+                        <span class="icon-edit"><i class="fas fa-pencil-alt"></i></span>
+                    </div>
+                </div>
+                <div class="info-field">
+                    <label for="PastaId">Pasta</label>
+                    <div class="input-icon">
+                        <select id="PastaId" name="PastaId" required>
+                            <option value="">Selecione uma pasta</option>
+                            @foreach (var pasta in Model)
+                            {
+                                <option value="@pasta.Id">@pasta.Nome</option>
+                            }
+                        </select>
+                        <span class="icon-dropdown"><i class="fas fa-chevron-down"></i></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="template-section">
+            <h2 class="section-title">Configurações do template</h2>
+            <div class="template-list">
+                <label class="template-card">
+                    <input type="radio" name="TipoTemplate" value="2" checked />
+                    <div class="template-visual">
+                        <img src="~/img/2_imoveis.png" alt="Até 2 imóveis" />
+                    </div>
+                    <div class="template-title">Até 2 imóveis</div>
+                </label>
+                <label class="template-card">
+                    <input type="radio" name="TipoTemplate" value="4" />
+                    <div class="template-visual">
+                        <img src="~/img/4_imoveis.png" alt="Até 4 imóveis" />
+                    </div>
+                    <div class="template-title">Até 4 imóveis</div>
+                </label>
+                <label class="template-card">
+                    <input type="radio" name="TipoTemplate" value="6" />
+                    <div class="template-visual">
+                        <img src="~/img/6_imoveis.png" alt="Até 6 imóveis" />
+                    </div>
+                    <div class="template-title">Até 6 imóveis</div>
+                </label>
+            </div>
+        </section>
+
+        <div class="button-container">
+            <button type="submit" class="btn-secondary" name="acao" value="rascunho">Salvar Rascunho</button>
+            <button type="submit" class="btn-primary" name="acao" value="avancar">Avançar</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}
