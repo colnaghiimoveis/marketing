@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ColnaghiMarketingTools</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body style="display: flex; min-height: 100vh; background: #f8f9fa;">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <img src="~/img/Logo.png" alt="Colnaghi Logo" class="sidebar-logo" />
+            <div class="sidebar-title">Marketing Tools</div>
+        </div>
+        <hr class="sidebar-divider" />
+        <ul class="sidebar-menu">
+            <li class="sidebar-item active">
+                <a asp-controller="Home" asp-action="Index" class="sidebar-link">
+                    <span class="sidebar-icon"><i class="far fa-envelope"></i></span>
+                    <span class="sidebar-label">Criador de Campanhas</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a asp-controller="Home" asp-action="Historico" class="sidebar-link">
+                    <span class="sidebar-icon"><i class="far fa-paper-plane"></i></span>
+                    <span class="sidebar-label">Histórico</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a asp-controller="Home" asp-action="Rascunhos" class="sidebar-link">
+                    <span class="sidebar-icon"><i class="far fa-file-alt"></i></span>
+                    <span class="sidebar-label">Rascunhos</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <form asp-controller="Account" asp-action="Logout" method="post" style="margin:0;">
+                    <button type="submit" class="sidebar-link" style="background:none;border:none;padding:0;width:100%;text-align:left;">
+                        <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+                        <span class="sidebar-label">Sair</span>
+                    </button>
+                </form>
+            </li>
+        </ul>
+        <div class="sidebar-section-title">Pastas</div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item">
+                <a asp-controller="Folder" asp-action="Index" class="sidebar-link">
+                    <span class="sidebar-icon"><i class="far fa-folder-open"></i></span>
+                    <span class="sidebar-label">Gerenciar Pastas</span>
+                </a>
+            </li>
+            @await Component.InvokeAsync("FolderMenu")
+        </ul>
+    </aside>
+    <main style="flex: 1; min-width: 0; display: flex; justify-content: center; align-items: flex-start;">
+        <div class="main-content-wrapper">
+            @RenderBody()
+        </div>
+    </main>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,34 @@
+@model IEnumerable<ColnaghiMarketingTools.Models.Pasta>
+@{
+    ViewData["Title"] = "Gerenciar Pastas";
+    Layout = "_Layout";
+}
+<div class="main-content-wrapper">
+    <h1 class="page-title">Gerenciar Pastas</h1>
+    <section class="info-section" style="margin-bottom: 32px;">
+        <h2 class="section-title">Pastas cadastradas</h2>
+        <ul class="folder-list">
+            @foreach (var pasta in Model)
+            {
+                <li class="folder-item">
+                    <span class="folder-icon"><i class="far fa-folder"></i></span>
+                    <span class="folder-name">@pasta.Nome</span>
+                    <form asp-action="Excluir" asp-controller="Folder" method="post" style="display:inline;">
+                        <input type="hidden" name="id" value="@pasta.Id" />
+                        <button class="folder-delete" title="Excluir"><i class="fas fa-trash-alt"></i></button>
+                    </form>
+                </li>
+            }
+        </ul>
+    </section>
+    <section class="info-section">
+        <h2 class="section-title">Cadastrar nova pasta</h2>
+        <form asp-action="Adicionar" asp-controller="Folder" method="post" class="folder-form">
+            <div class="input-icon">
+                <input type="text" name="nome" placeholder="Nome da nova pasta" required />
+                <span class="icon-edit"><i class="far fa-folder"></i></span>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top: 16px;">Cadastrar</button>
+        </form>
+    </section>
+</div> 

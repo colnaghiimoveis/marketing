@@ -1,0 +1,61 @@
+@model IEnumerable<ColnaghiMarketingTools.Models.Campanha>
+@{
+    ViewData["Title"] = "Histórico de Campanhas";
+    Layout = "_Layout";
+}
+
+<div class="main-content-wrapper">
+    <h1 class="page-title">Histórico de Campanhas</h1>
+    <div class="folder-list">
+        @if (!Model.Any())
+        {
+            <div class="unidades-placeholder">Nenhuma campanha encontrada.</div>
+        }
+        else
+        {
+            <div class="folder-list-header" style="display:flex;gap:24px;padding:0 8px 8px 44px;font-weight:600;color:#888;">
+                <div style="flex:2;">Nome</div>
+                <div style="flex:1;">Data de Criação</div>
+                <div style="flex:1;">Status</div>
+                <div style="width:220px;"></div>
+            </div>
+            @foreach (var campanha in Model)
+            {
+                <div class="folder-item">
+                    <div class="folder-icon"><i class="far fa-envelope"></i></div>
+                    <div class="folder-name" style="flex:2;">
+                        <b>@campanha.Nome</b><br />
+                        <span style="font-size:0.95em;color:#888;">@campanha.Pasta?.Nome</span>
+                    </div>
+                    <div class="folder-date" style="flex:1;align-self:center;">
+                        @campanha.DataCriacao.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+                    <div class="folder-status" style="flex:1;align-self:center;">
+                        @if (campanha.Rascunho)
+                        {
+                            <span style="color:#E53935;font-weight:600;">Rascunho</span>
+                        }
+                        else
+                        {
+                            <span style="color:#43a047;font-weight:600;">Finalizada</span>
+                        }
+                    </div>
+                    <div style="margin-left:auto;display:flex;align-items:center;gap:12px;width:220px;">
+                        @if (!campanha.Ativo || (campanha.Pasta != null && !campanha.Pasta.Ativo))
+                        {
+                            <span style="color:#bbb;font-weight:600;">Indisponível</span>
+                        }
+                        else
+                        {
+                            <a asp-action="EditarCampanha" asp-route-id="@campanha.Id" class="btn-primary">Editar</a>
+                            @if (!campanha.Rascunho)
+                            {
+                                <a asp-action="VisualizarCampanha" asp-route-id="@campanha.Id" class="btn-secondary">Visualizar</a>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div> 
