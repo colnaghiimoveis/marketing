@@ -15,8 +15,15 @@ namespace ColnaghiMarketingTools.Models
         public bool Rascunho { get; set; }
         public int TipoExibicao { get; set; }
         
+        // Propriedades de Call To Action (CTA)
+        public string? CtaTexto { get; set; }
+        public string? CtaUrl { get; set; }
+        public string? CtaEstilo { get; set; }
+        public bool CtaAtivo { get; set; }
+        public bool CtaAbrirNovaAba { get; set; }
+        
         // Propriedade de navegação
         public Pasta? Pasta { get; set; }
         public List<CampanhaImovel>? Imoveis { get; set; }
     }
-} 
+}

@@ -1,11 +1,32 @@
+@using System.Linq
+@using System.Collections.Generic
+@using System.Globalization
 @model ColnaghiMarketingTools.Models.Campanha
 @{
     ViewData["Title"] = "Visualização da Campanha";
     Layout = "_Layout";
+    var customTitulos = ViewBag.ImoveisCustomTitulos as IDictionary<string, string> ?? new Dictionary<string, string>();
+    var customTitulosJson = ViewBag.ImoveisCustomTitulosJson as string ?? string.Empty;
+    var ctaSecundarioTexto = ViewBag.CtaSecundarioTexto as string ?? string.Empty;
+    var ctaSecundarioUrl = ViewBag.CtaSecundarioUrl as string ?? string.Empty;
 }
 
-<div style="text-align:right; margin-bottom: 18px;">
+<!-- Texto acima do logo (opcional, não persiste no banco) -->
+@if (!string.IsNullOrWhiteSpace(ViewBag.HeaderTexto as string))
+{
+    <div style="text-align:center;margin:12px 0;color:#222;font-family:Arial,Helvetica,sans-serif;">
+        @ViewBag.HeaderTexto
+    </div>
+}
+
+<div style="text-align:center; margin: 18px 0;">
     <form asp-action="GerarEmailMarketing" asp-route-id="@Model.Id" method="post" style="display:inline;">
+        <!-- leva o texto acima do logo para o download final -->
+        <input type="hidden" name="HeaderTexto" value="@((ViewBag.HeaderTexto as string) ?? "")" />
+        <input type="hidden" name="TituloUnidades" value="@((ViewBag.TituloUnidades as string) ?? "Unidades")" />
+        <input type="hidden" name="CtaSecundarioTexto" value="@ctaSecundarioTexto" />
+        <input type="hidden" name="CtaSecundarioUrl" value="@ctaSecundarioUrl" />
+        <input type="hidden" name="ImoveisCustomTitulosJson" value="@customTitulosJson" />
         <button type="submit" class="btn-primary">Gerar E-mail Marketing</button>
     </form>
 </div>
@@ -13,39 +34,76 @@
 <div class="main-content-wrapper">
     <div class="preview-final-container">
         <div class="preview-final-email">
+            <!-- Logo -->
             <div class="preview-logo">
                 <img src="~/img/Logo.png" alt="Colnaghi Logo" />
             </div>
             <hr class="preview-divider" />
+
+            <!-- Título -->
             <div class="preview-title">
                 <h1>@Model.Titulo</h1>
             </div>
+
+            <!-- Chamada -->
             <div class="preview-chamada">
                 <p>@Model.Chamada</p>
             </div>
+
+            <!-- CTA (topo) -->
             <div class="preview-cta">
-                <button class="btn-cta-vermelho" disabled>Conheça o Lançamento</button>
+                @if (!string.IsNullOrWhiteSpace(Model.CtaTexto) && !string.IsNullOrWhiteSpace(Model.CtaUrl))
+                {
+                    <a href="@Model.CtaUrl"
+                       class="btn-cta-vermelho"
+                       target="_blank"
+                       rel="noopener">
+                        @Model.CtaTexto
+                    </a>
+                }
             </div>
+
+            <!-- Corpo -->
             <div class="preview-corpo">
                 <p>@Model.CorpoTexto</p>
             </div>
-            <h3 class="unidades-titulo-vermelho">Unidades</h3>
 
+            <!-- Unidades -->
+            <h3 class="unidades-titulo-vermelho">
+                @(ViewBag.TituloUnidades ?? "Unidades")
+            </h3>
             <div class="preview-unidades">
                 <hr class="unidades-divider" />
                 <div class="unidades-lista-grid @(Model.TipoExibicao == 1 ? "um-por-linha" : "dois-por-linha")">
                     @if (Model.Imoveis != null && Model.Imoveis.Any())
                     {
-                        foreach (var imovel in Model.Imoveis)
+                        var imoveisLista = Model.Imoveis.ToList();
+                        for (int idx = 0; idx < imoveisLista.Count; idx++)
                         {
+                            var imovel = imoveisLista[idx];
+                            var tituloKey = $"idx{idx}";
+                            int? areaInteira = imovel.AreaPrivativa.HasValue
+                                ? (int)System.Math.Round(imovel.AreaPrivativa.Value, MidpointRounding.AwayFromZero)
+                                : (int?)null;
+                            var areaTexto = areaInteira.HasValue ? $"{areaInteira.Value} m²" : string.Empty;
+                            var valorTexto = imovel.ValorVenda.HasValue ? $"R$ {((int)imovel.ValorVenda.Value).ToString("N0", CultureInfo.GetCultureInfo("pt-BR"))}" : string.Empty;
+                            var codigoUpper = string.IsNullOrEmpty(imovel.CodigoImovel) ? string.Empty : imovel.CodigoImovel.ToUpperInvariant();
+                            var vagasTexto = imovel.Vagas.HasValue ? imovel.Vagas.Value.ToString() : string.Empty;
+                            var dormsTexto = imovel.Dormitorios.HasValue ? imovel.Dormitorios.Value.ToString() : string.Empty;
                             <a href="@imovel.UrlLink" target="_blank" style="text-decoration:none; color:inherit;">
                                 <div class="unidade-card-figma">
                                     <div class="unidade-foto-container">
                                         @if (!string.IsNullOrEmpty(imovel.FotoDestaquePequena))
                                         {
-                                            <img src="@imovel.FotoDestaquePequena" alt="Foto Imóvel" class="unidade-foto-figma" />
+                                            var tipoFoto = !string.IsNullOrEmpty(imovel.Tipo) ? char.ToUpper(imovel.Tipo[0]) + imovel.Tipo.Substring(1).ToLower() : string.Empty;
+                                            var bairroFoto = !string.IsNullOrEmpty(imovel.Bairro) ? char.ToUpper(imovel.Bairro[0]) + imovel.Bairro.Substring(1).ToLower() : string.Empty;
+                                            var tituloPadraoFoto = string.IsNullOrEmpty(tipoFoto) && string.IsNullOrEmpty(bairroFoto) ? string.Empty : $"{tipoFoto} no {bairroFoto}";
+                                            var tituloFoto = customTitulos.TryGetValue(tituloKey, out var tituloPersonalizadoFoto) && !string.IsNullOrWhiteSpace(tituloPersonalizadoFoto)
+                                                ? tituloPersonalizadoFoto.Trim()
+                                                : tituloPadraoFoto;
+                                            <img src="@imovel.FotoDestaquePequena" alt="@tituloFoto" class="unidade-foto-figma" />
                                         }
-                                        <div class="unidade-codigo-sobre-imagem">@imovel.CodigoImovel</div>
+                                        <div class="unidade-codigo-sobre-imagem">@(!string.IsNullOrEmpty(codigoUpper) ? codigoUpper : "CÓDIGO")</div>
                                         @if (!string.IsNullOrEmpty(imovel.Promocao))
                                         {
                                             <div class="unidade-promocao-sobre-imagem">@imovel.Promocao</div>
@@ -53,21 +111,43 @@
                                     </div>
                                     <div class="unidade-bairro-tipo-figma">
                                         @{
-                                            var tipo = !string.IsNullOrEmpty(imovel.Tipo) ? char.ToUpper(imovel.Tipo[0]) + imovel.Tipo.Substring(1).ToLower() : "";
-                                            var bairro = !string.IsNullOrEmpty(imovel.Bairro) ? char.ToUpper(imovel.Bairro[0]) + imovel.Bairro.Substring(1).ToLower() : "";
-                                            var bairroTipo = $"{tipo} no {bairro}";
+                                            var tipo = (imovel.Tipo ?? string.Empty).Trim();
+                                            var bairro = (imovel.Bairro ?? string.Empty).Trim();
+                                            var tituloPadrao = string.IsNullOrEmpty(tipo) && string.IsNullOrEmpty(bairro)
+                                                ? string.Empty
+                                                : string.IsNullOrEmpty(tipo)
+                                                    ? bairro
+                                                    : string.IsNullOrEmpty(bairro)
+                                                        ? tipo
+                                                        : $"{tipo} no {bairro}";
+                                            var tituloFinal = customTitulos.TryGetValue(tituloKey, out var tituloPersonalizado) && !string.IsNullOrWhiteSpace(tituloPersonalizado)
+                                                ? tituloPersonalizado.Trim()
+                                                : tituloPadrao;
+                                            @tituloFinal
                                         }
-                                        @bairroTipo
                                     </div>
                                     <div class="unidade-detalhes-valor-container">
                                         <div class="unidade-detalhes-figma">
-                                            <span><img src="~/img/icone_tamanho.jpg" /> @imovel.AreaPrivativa m²</span>
-                                            <span class="detalhe-sep">|</span>
-                                            <span><img src="~/img/icone_carro.jpg" /> @imovel.Vagas</span>
-                                            <span class="detalhe-sep">|</span>
-                                            <span><img src="~/img/icone_dormitorio.jpg" /> @imovel.Dormitorios</span>
+                                            @{
+                                                var detalhes = new List<string>();
+                                                if (!string.IsNullOrEmpty(areaTexto))
+                                                {
+                                                    detalhes.Add($"<span><img src='{Url.Content("~/img/icone_tamanho.jpg")}' alt='' /> {areaTexto}</span>");
+                                                }
+                                                if (!string.IsNullOrEmpty(dormsTexto))
+                                                {
+                                                    detalhes.Add($"<span><img src='{Url.Content("~/img/icone_dormitorio.jpg")}' alt='' /> {dormsTexto}</span>");
+                                                }
+                                                if (!string.IsNullOrEmpty(vagasTexto))
+                                                {
+                                                    detalhes.Add($"<span><img src='{Url.Content("~/img/icone_carro.jpg")}' alt='' /> {vagasTexto}</span>");
+                                                }
+                                            }
+                                            @Html.Raw(string.Join("<span class=\"detalhe-sep\">|</span>", detalhes))
                                         </div>
-                                        <div class="unidade-valor-figma">@(imovel.ValorVenda.HasValue ? ((int)imovel.ValorVenda.Value).ToString("C0") : "")</div>
+                                        <div class="unidade-valor-figma">
+                                            @valorTexto
+                                        </div>
                                     </div>
                                 </div>
                             </a>
@@ -79,9 +159,36 @@
                     }
                 </div>
             </div>
+
+            <!-- CTA repetido abaixo das unidades (somente visual) -->
+            <div class="preview-cta">
+                @if (!string.IsNullOrWhiteSpace(ctaSecundarioTexto) && !string.IsNullOrWhiteSpace(ctaSecundarioUrl))
+                {
+                    <a href="@ctaSecundarioUrl"
+                       class="btn-cta-vermelho"
+                       target="_blank"
+                       rel="noopener">
+                        @ctaSecundarioTexto
+                    </a>
+                }
+            </div>
+
+            <!-- Rodapé -->
             <div class="preview-rodape">
                 <p>@Model.Rodape</p>
             </div>
+
+            <div class="email-social">
+                <a href="https://www.instagram.com.br" class="email-social-link" target="_blank" rel="noopener" aria-label="Instagram">
+                    <img src="https://cdn1.iconfinder.com/data/icons/social-media-circle-7/512/Circled_Instagram_svg-64.png" alt="Instagram" class="email-social-img" />
+                </a>
+                <a href="https://www.youtube.com/@@colnaghi" class="email-social-link" target="_blank" rel="noopener" aria-label="YouTube">
+                    <img src="https://cdn1.iconfinder.com/data/icons/social-media-circle-7/512/Circled_Youtube_svg-64.png" alt="YouTube" class="email-social-img" />
+                </a>
+                <a href="https://www.facebook.com/imoveiscolnaghi" class="email-social-link" target="_blank" rel="noopener" aria-label="Facebook">
+                    <img src="https://cdn3.iconfinder.com/data/icons/social-media-black-white-2/512/BW_Facebook_glyph_svg-64.png" alt="Facebook" class="email-social-img" />
+                </a>
+            </div>
         </div>
     </div>
-</div> 
+</div>

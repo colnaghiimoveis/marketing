@@ -18,13 +18,21 @@ namespace ColnaghiMarketingTools.Repositories
             using (var conn = new MySqlConnection(_connectionString))
             {
                 var sql = @"
-                    INSERT INTO Campanhas (Nome, PastaId, TipoTemplate, Titulo, Chamada, CorpoTexto, Rodape, TipoExibicao, DataCriacao, Ativo, Rascunho)
-                    VALUES (@Nome, @PastaId, @TipoTemplate, @Titulo, @Chamada, @CorpoTexto, @Rodape, @TipoExibicao, @DataCriacao, @Ativo, @Rascunho);
-                    SELECT LAST_INSERT_ID();";
+    INSERT INTO Campanhas 
+        (Nome, PastaId, TipoTemplate, Titulo, Chamada, CorpoTexto, Rodape, TipoExibicao, DataCriacao, Ativo, Rascunho,
+         CtaTexto, CtaUrl, CtaEstilo, CtaAtivo, CtaAbrirNovaAba)
+    VALUES 
+        (@Nome, @PastaId, @TipoTemplate, @Titulo, @Chamada, @CorpoTexto, @Rodape, @TipoExibicao, @DataCriacao, @Ativo, @Rascunho,
+         @CtaTexto, @CtaUrl, @CtaEstilo, @CtaAtivo, @CtaAbrirNovaAba);
+    SELECT LAST_INSERT_ID();";
 
                 campanha.DataCriacao = DateTime.Now;
                 campanha.Ativo = true;
                 campanha.Rascunho = true;
+
+                campanha.CtaEstilo = string.IsNullOrWhiteSpace(campanha.CtaEstilo) ? "btn-cta-vermelho" : campanha.CtaEstilo.Trim();
+                campanha.CtaTexto = string.IsNullOrWhiteSpace(campanha.CtaTexto) ? null : campanha.CtaTexto.Trim();
+                campanha.CtaUrl = string.IsNullOrWhiteSpace(campanha.CtaUrl) ? null : campanha.CtaUrl.Trim();
 
                 return conn.QuerySingle<long>(sql, campanha);
             }
@@ -35,9 +43,23 @@ namespace ColnaghiMarketingTools.Repositories
             using (var conn = new MySqlConnection(_connectionString))
             {
                 var sql = @"
-                    UPDATE Campanhas 
-                    SET Titulo = @Titulo, Chamada = @Chamada, CorpoTexto = @CorpoTexto, Rodape = @Rodape, TipoExibicao = @TipoExibicao, Rascunho = 0
-                    WHERE Id = @Id";
+    UPDATE Campanhas 
+    SET Titulo = @Titulo,
+        Chamada = @Chamada,
+        CorpoTexto = @CorpoTexto,
+        Rodape = @Rodape,
+        TipoExibicao = @TipoExibicao,
+        Rascunho = 0,
+        CtaTexto = @CtaTexto,
+        CtaUrl = @CtaUrl,
+        CtaEstilo = @CtaEstilo,
+        CtaAtivo = @CtaAtivo,
+        CtaAbrirNovaAba = @CtaAbrirNovaAba
+    WHERE Id = @Id";
+
+                campanha.CtaEstilo = string.IsNullOrWhiteSpace(campanha.CtaEstilo) ? "btn-cta-vermelho" : campanha.CtaEstilo.Trim();
+                campanha.CtaTexto = string.IsNullOrWhiteSpace(campanha.CtaTexto) ? null : campanha.CtaTexto.Trim();
+                campanha.CtaUrl = string.IsNullOrWhiteSpace(campanha.CtaUrl) ? null : campanha.CtaUrl.Trim();
 
                 conn.Execute(sql, campanha);
             }

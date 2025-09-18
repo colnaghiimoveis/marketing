@@ -1,3 +1,4 @@
+@using System.Globalization
 @model ColnaghiMarketingTools.Models.Campanha
 @{
     ViewData["Title"] = "Editar Campanha";
@@ -18,86 +19,202 @@
     <form asp-action="AtualizarCampanha" asp-controller="Home" method="post">
         <input type="hidden" name="Id" value="@Model.Id" />
 
+        <!-- Texto acima do logo (opcional, não persiste no banco) -->
+        <div class="info-section" style="margin-bottom:16px;">
+            <label for="HeaderTexto" style="display:block;font-weight:600;margin-bottom:6px;">Texto acima do logo (opcional)</label>
+            <input type="text"
+                   id="HeaderTexto"
+                   name="HeaderTexto"
+                   class="preview-input"
+                   value="@((ViewBag.HeaderTexto as string) ?? "")"
+                   placeholder="Ex.: Mês das Construtoras — Condições especiais"
+                   style="width:100%;padding:10px 12px;border:1px solid #eee;border-radius:6px;background:#fafafa;" />
+            <div style="text-align:center;color:#222;margin-top:10px;font-family:Arial,Helvetica,sans-serif;">
+                <small>Pré‑visualização abaixo</small>
+            </div>
+        </div>
+
         <section class="template-section">
-
-
-            <!-- Preview do Template -->
-            <div class="template-preview">
-
-                <div class="preview-content">
-                    <div class="email-preview">
-                        <!-- Logo Colnaghi -->
-                        <div class="preview-logo">
-                            <img src="~/img/Logo.png" alt="Colnaghi Logo" />
-                        </div>
-                        <hr class="preview-divider" />
-
-                        <!-- Título -->
-                        <div class="preview-title">
-                            <input type="text" name="Titulo" value="@Model.Titulo" placeholder="Adicione o título" class="preview-input" />
-                            <span class="edit-icon-preview"><i class="fas fa-pencil-alt"></i></span>
-                        </div>
-
-                        <!-- Chamada -->
-                        <div class="preview-chamada">
-                            <textarea name="Chamada" placeholder="Adicione a chamada" class="preview-textarea">@Model.Chamada</textarea>
-                            <span class="edit-icon-preview"><i class="fas fa-pencil-alt"></i></span>
-                        </div>
-
-                        <!-- Botão CTA -->
-                        <div class="preview-cta">
-                            <button type="button" class="btn-cta-vermelho">Conheça o Lançamento</button>
-                        </div>
-
-                        <!-- Corpo de Texto -->
-                        <div class="preview-corpo">
-                            <textarea name="CorpoTexto" placeholder="Adicione um corpo de texto" class="preview-textarea">@Model.CorpoTexto</textarea>
-                            <span class="edit-icon-preview"><i class="fas fa-pencil-alt"></i></span>
-                        </div>
-
-                        <!-- Seção Unidades -->
-                        <h3 class="unidades-titulo-vermelho">Unidades</h3>
-
-                        <div class="preview-unidades">
-                            <hr class="unidades-divider" />
-                            <div class="unidades-placeholder">
-                                <div class="adicionar-unidades-campos">
-                                    @{
-                                        int qtd = Model.TipoTemplate;
-                                        if (qtd != 2 && qtd != 4 && qtd != 6) { qtd = 2; }
-                                    }
-                                    @for (int i = 0; i < qtd; i++)
-                                    {
-                                        <input type="text" name="Imoveis[@i].CodigoImovel" maxlength="7" class="codigo-imovel-input" placeholder="Código do imóvel" value="@(Model.Imoveis != null && Model.Imoveis.Count > i ? Model.Imoveis[i].CodigoImovel : "")" />
-                                    }
+            @{
+                var headerTexto = (ViewBag.HeaderTexto as string) ?? string.Empty;
+                var tituloUnidadesValor = (ViewBag.TituloUnidades as string) ?? "Unidades";
+                var customTitulos = ViewBag.ImoveisCustomTitulos as IDictionary<string, string> ?? new Dictionary<string, string>();
+                var imoveisLista = Model.Imoveis ?? new List<ColnaghiMarketingTools.Models.CampanhaImovel>();
+                var totalSlots = Model.TipoTemplate;
+                if (totalSlots != 2 && totalSlots != 4 && totalSlots != 6)
+                {
+                    totalSlots = 2;
+                }
+                var imoveisSlots = new List<ColnaghiMarketingTools.Models.CampanhaImovel>();
+                for (int idx = 0; idx < totalSlots; idx++)
+                {
+                    if (imoveisLista.Count > idx)
+                    {
+                        imoveisSlots.Add(imoveisLista[idx]);
+                    }
+                    else
+                    {
+                        imoveisSlots.Add(new ColnaghiMarketingTools.Models.CampanhaImovel());
+                    }
+                }
+            }
+            <div class="email-editor-preview">
+                <div id="headerPreview" class="email-editor-header-preview" @(string.IsNullOrWhiteSpace(headerTexto) ? "style=\"display:none;\"" : "")>
+                    @headerTexto
+                </div>
+                <table class="email-editor-table" role="presentation" cellspacing="0" cellpadding="0" border="0">
+                    <tr>
+                        <td class="email-editor-surface">
+                            <div class="email-logo-wrapper">
+                                <img src="~/img/Logo.png" alt="Colnaghi Logo" />
+                            </div>
+                            <div class="email-divider"></div>
+                            <div class="email-field-block">
+                                <input type="text" name="Titulo" value="@Model.Titulo" class="email-field email-field-title" placeholder="Adicione o título" />
+                            </div>
+                            <div class="email-field-block">
+                                <textarea name="Chamada" class="email-field email-field-chamada" placeholder="Adicione a chamada">@Model.Chamada</textarea>
+                            </div>
+                            <div class="cta-edit-block">
+                                <div class="cta-group">
+                                    <div class="cta-group-header">Botão principal</div>
+                                    <div class="cta-inputs">
+                                        <input type="text" name="CtaTexto" value="@Model.CtaTexto" placeholder="Texto do botão (ex.: Falar com um especialista)" class="email-field" />
+                                        <input type="url" name="CtaUrl" value="@Model.CtaUrl" placeholder="https://colnaghi.com.br/contato" class="email-field" />
+                                    </div>
+                                    <a id="ctaPreview" class="btn-cta-vermelho" target="_blank" rel="noopener" style="display:none;"></a>
+                                </div>
+                                <div class="cta-group">
+                                    <div class="cta-group-header">Botão no rodapé</div>
+                                    <div class="cta-inputs">
+                                        <input type="text" name="CtaSecundarioTexto" value="@((ViewBag.CtaSecundarioTexto as string) ?? string.Empty)" placeholder="Texto do botão (ex.: Conheça outros imóveis)" class="email-field" />
+                                        <input type="url" name="CtaSecundarioUrl" value="@((ViewBag.CtaSecundarioUrl as string) ?? string.Empty)" placeholder="https://colnaghi.com.br/imoveis" class="email-field" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <h2 class="section-title">Configuração do Template</h2>
-
-                        <div class="element-position-section">
-                            <label class="element-position-label">Selecione a posição dos elementos</label>
-                            <div class="element-position-options">
-                                <label class="element-position-option">
-                                    <input type="radio" name="TipoExibicao" value="2" @(Model.TipoExibicao == 2 ? "checked" : "") />
-                                    <img src="~/img/dois_por_linha.png" alt="Dois imóveis por linha" />
-                                    <span>Dois imóveis por linha</span>
-                                </label>
-                                <label class="element-position-option">
-                                    <input type="radio" name="TipoExibicao" value="1" @(Model.TipoExibicao == 1 ? "checked" : "") />
-                                    <img src="~/img/um_por_linha.png" alt="Um imóvel por linha" />
-                                    <span>Um imóvel por linha</span>
-                                </label>
-                               
+                            <div class="email-field-block">
+                                <textarea name="CorpoTexto" class="email-field email-field-corpo" placeholder="Adicione um corpo de texto">@Model.CorpoTexto</textarea>
                             </div>
-                        </div>
-
-                        <!-- Rodapé -->
-                        <div class="preview-rodape">
-                            <textarea name="Rodape" placeholder="Adicione o rodapé" class="preview-textarea">@Model.Rodape</textarea>
-                            <span class="edit-icon-preview"><i class="fas fa-pencil-alt"></i></span>
-                        </div>
+                            <div class="email-field-block email-unidades-titulo">
+                                <input type="text" id="TituloUnidades" name="TituloUnidades" value="@tituloUnidadesValor" class="email-field email-field-unidades" />
+                            </div>
+                            <div class="email-unidades-divider"></div>
+                            @{
+                                var cultura = CultureInfo.GetCultureInfo("pt-BR");
+                                var textInfo = cultura.TextInfo;
+                                var iconAreaPath = Url.Content("~/img/icone_tamanho.jpg");
+                                var iconCarPath = Url.Content("~/img/icone_carro.jpg");
+                                var iconDormPath = Url.Content("~/img/icone_dormitorio.jpg");
+                            }
+                            <div class="email-unidades-grid @(Model.TipoExibicao == 1 ? "grid-um" : "grid-dois")">
+                                @for (int i = 0; i < imoveisSlots.Count; i++)
+                                {
+                                    var imovel = imoveisSlots[i];
+                                    var codigo = imovel.CodigoImovel ?? string.Empty;
+                                    var foto = imovel.FotoDestaquePequena ?? string.Empty;
+                                    var promocao = imovel.Promocao ?? string.Empty;
+                                    int? areaInteira = imovel.AreaPrivativa.HasValue
+                                        ? (int)System.Math.Round(imovel.AreaPrivativa.Value, MidpointRounding.AwayFromZero)
+                                        : (int?)null;
+                                    var area = areaInteira.HasValue ? $"{areaInteira.Value} m²" : string.Empty;
+                                    var vagas = imovel.Vagas.HasValue ? imovel.Vagas.Value.ToString() : string.Empty;
+                                    var dorms = imovel.Dormitorios.HasValue ? imovel.Dormitorios.Value.ToString() : string.Empty;
+                                    var valor = imovel.ValorVenda.HasValue ? $"R$ {((int)imovel.ValorVenda.Value).ToString("N0", cultura)}" : string.Empty;
+                                    var tipo = imovel.Tipo?.Trim() ?? string.Empty;
+                                    var bairro = imovel.Bairro?.Trim() ?? string.Empty;
+                                    var defaultTitulo = string.IsNullOrEmpty(tipo) && string.IsNullOrEmpty(bairro)
+                                        ? string.Empty
+                                        : string.IsNullOrEmpty(tipo)
+                                            ? bairro
+                                            : string.IsNullOrEmpty(bairro)
+                                                ? tipo
+                                                : $"{tipo} no {bairro}";
+                                    var tituloKey = $"idx{i}";
+                                    var tituloFinal = defaultTitulo;
+                                    if (customTitulos.TryGetValue(tituloKey, out var tituloPersonalizado) && !string.IsNullOrWhiteSpace(tituloPersonalizado))
+                                    {
+                                        tituloFinal = tituloPersonalizado.Trim();
+                                    }
+                                    var detalhesBuilder = new List<string>();
+                                    if (!string.IsNullOrEmpty(area))
+                                    {
+                                        detalhesBuilder.Add($"<span class=\"detalhe-item\"><img src=\"{iconAreaPath}\" alt=\"\" /> {area}</span>");
+                                    }
+                                     if (!string.IsNullOrEmpty(dorms))
+                                    {
+                                        detalhesBuilder.Add($"<span class=\"detalhe-item\"><img src=\"{iconDormPath}\" alt=\"\" /> {dorms}</span>");
+                                    }
+                                    if (!string.IsNullOrEmpty(vagas))
+                                    {
+                                        detalhesBuilder.Add($"<span class=\"detalhe-item\"><img src=\"{iconCarPath}\" alt=\"\" /> {vagas}</span>");
+                                    }
+                                   
+                                    var detalhesHtml = detalhesBuilder.Count == 0 ? string.Empty : string.Join("<span class=\"detalhe-sep\">|</span>", detalhesBuilder);
+                                <div class="unidade-card" data-card-index="@i" data-auto-title="@defaultTitulo">
+                                    <div class="unidade-foto-wrapper" data-card-index="@i">
+                                        <img src="@foto" alt="@tituloFinal" class="unidade-foto" @(string.IsNullOrEmpty(foto) ? "style=\"display:none;\"" : string.Empty) />
+                                        <div class="unidade-foto-placeholder" @(string.IsNullOrEmpty(foto) ? string.Empty : "style=\"display:none;\"")>Imagem do imóvel</div>
+                                        <span class="unidade-codigo-overlay" data-card-index="@i">@(!string.IsNullOrEmpty(codigo) ? codigo.ToUpperInvariant() : "CÓDIGO")</span>
+                                        <span class="unidade-promocao-overlay" @(string.IsNullOrEmpty(promocao) ? "style=\"display:none;\"" : string.Empty)>@promocao</span>
+                                    </div>
+                                    <div class="unidade-input codigo">
+                                        <label for="codigo-@i">Código do imóvel</label>
+                                        <div class="codigo-input-wrapper">
+                                            <input id="codigo-@i" type="text" name="Imoveis[@i].CodigoImovel" maxlength="7" class="codigo-imovel-input" data-card-index="@i" placeholder="Código do imóvel" value="@codigo" autocomplete="off" />
+                                            <button type="button" class="btn-buscar-imovel" data-card-index="@i" aria-label="Buscar imóvel">
+                                                <span class="icon-search" aria-hidden="true">&#128269;</span>
+                                                <span class="sr-only">Buscar</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="unidade-feedback" data-card-index="@i"></div>
+                                    <div class="unidade-input titulo">
+                                        <label for="titulo-personalizado-@i">Título do imóvel</label>
+                                        <input id="titulo-personalizado-@i" type="text" name="ImoveisCustomTitulo[@i]" class="titulo-imovel-input" placeholder="Ex.: Apartamento no Bela Vista" value="@tituloFinal" />
+                                    </div>
+                                    <div class="unidade-detalhes" data-role="detalhes" data-card-index="@i">
+                                        @Html.Raw(detalhesHtml)
+                                    </div>
+                                    <div class="unidade-valor" data-role="valor">@valor</div>
+                                </div>
+                                }
+                            </div>
+                            <div class="cta-preview-secondary">
+                                <a id="ctaPreviewBottom" class="btn-cta-vermelho" target="_blank" rel="noopener" style="display:none;"></a>
+                            </div>
+                            <div class="email-field-block">
+                                <textarea name="Rodape" class="email-field email-field-rodape" placeholder="Adicione o rodapé">@Model.Rodape</textarea>
+                            </div>
+                            <div class="email-social">
+                                <a href="https://www.instagram.com.br" class="email-social-link" target="_blank" rel="noopener" aria-label="Instagram">
+                                    <img src="https://cdn1.iconfinder.com/data/icons/social-media-circle-7/512/Circled_Instagram_svg-64.png" alt="Instagram" class="email-social-img" />
+                                </a>
+                                <a href="https://www.youtube.com/@@colnaghi" class="email-social-link" target="_blank" rel="noopener" aria-label="YouTube">
+                                    <img src="https://cdn1.iconfinder.com/data/icons/social-media-circle-7/512/Circled_Youtube_svg-64.png" alt="YouTube" class="email-social-img" />
+                                </a>
+                                <a href="https://www.facebook.com/imoveiscolnaghi" class="email-social-link" target="_blank" rel="noopener" aria-label="Facebook">
+                                    <img src="https://cdn3.iconfinder.com/data/icons/social-media-black-white-2/512/BW_Facebook_glyph_svg-64.png" alt="Facebook" class="email-social-img" />
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="template-controls">
+                <h2 class="section-title">Configuração do Template</h2>
+                <div class="element-position-section">
+                    <label class="element-position-label">Selecione a posição dos elementos</label>
+                    <div class="element-position-options">
+                        <label class="element-position-option">
+                            <input type="radio" name="TipoExibicao" value="2" @(Model.TipoExibicao == 2 ? "checked" : "") />
+                            <img src="~/img/dois_por_linha.png" alt="Dois imóveis por linha" />
+                            <span>Dois imóveis por linha</span>
+                        </label>
+                        <label class="element-position-option">
+                            <input type="radio" name="TipoExibicao" value="1" @(Model.TipoExibicao == 1 ? "checked" : "") />
+                            <img src="~/img/um_por_linha.png" alt="Um imóvel por linha" />
+                            <span>Um imóvel por linha</span>
+                        </label>
                     </div>
                 </div>
             </div>
@@ -111,21 +228,286 @@
 </div>
 
 @section Scripts {
-    <script>
-        // Controles de posição do preview
-        document.querySelectorAll('.btn-preview-control').forEach(button => {
-            button.addEventListener('click', function () {
-                // Remove active de todos os botões
-                document.querySelectorAll('.btn-preview-control').forEach(btn => btn.classList.remove('active'));
-                // Adiciona active ao botão clicado
-                this.classList.add('active');
+<script>
+  (function () {
+    const headerInput = document.getElementById('HeaderTexto');
+    const headerPreview = document.getElementById('headerPreview');
 
-                // Aqui você pode adicionar lógica para alterar a posição dos elementos
-                const position = this.dataset.position;
-                console.log('Posição selecionada:', position);
-            });
+    function renderHeaderPreview() {
+      if (!headerPreview) return;
+      const val = (headerInput && headerInput.value || '').trim();
+      if (val.length > 0) {
+        headerPreview.textContent = val;
+        headerPreview.style.display = 'block';
+      } else {
+        headerPreview.textContent = '';
+        headerPreview.style.display = 'none';
+      }
+    }
+
+    if (headerInput) {
+      headerInput.addEventListener('input', renderHeaderPreview);
+      renderHeaderPreview();
+    }
+
+    const ctaTextInput      = document.querySelector('input[name="CtaTexto"]');
+    const ctaUrlInput       = document.querySelector('input[name="CtaUrl"]');
+    const ctaPreview        = document.getElementById('ctaPreview');
+    const ctaBottomTextInput = document.querySelector('input[name="CtaSecundarioTexto"]');
+    const ctaBottomUrlInput  = document.querySelector('input[name="CtaSecundarioUrl"]');
+    const ctaBottomPreview   = document.getElementById('ctaPreviewBottom');
+
+    function normalizeUrl(u) {
+      if (!u) return '';
+      const trimmed = u.trim();
+      if (/^https?:\/\//i.test(trimmed)) {
+        return trimmed;
+      }
+      return `https://${trimmed}`;
+    }
+
+    function updateAnchor(anchor, text, url) {
+      if (!anchor) return;
+      if (text && url) {
+        anchor.textContent = text;
+        anchor.href = normalizeUrl(url);
+        anchor.style.display = 'inline-block';
+      } else {
+        anchor.textContent = '';
+        anchor.removeAttribute('href');
+        anchor.style.display = 'none';
+      }
+    }
+
+    function renderCtaPreview() {
+      const text = (ctaTextInput && ctaTextInput.value || '').trim();
+      const url  = (ctaUrlInput && ctaUrlInput.value || '').trim();
+      updateAnchor(ctaPreview, text, url);
+    }
+
+    if (ctaTextInput) ctaTextInput.addEventListener('input', renderCtaPreview);
+    if (ctaUrlInput)  ctaUrlInput.addEventListener('input', renderCtaPreview);
+    renderCtaPreview();
+
+    function renderBottomCtaPreview() {
+      const text = (ctaBottomTextInput && ctaBottomTextInput.value || '').trim();
+      const url  = (ctaBottomUrlInput && ctaBottomUrlInput.value || '').trim();
+      updateAnchor(ctaBottomPreview, text, url);
+    }
+
+    if (ctaBottomTextInput) ctaBottomTextInput.addEventListener('input', renderBottomCtaPreview);
+    if (ctaBottomUrlInput)  ctaBottomUrlInput.addEventListener('input', renderBottomCtaPreview);
+    renderBottomCtaPreview();
+
+    const fetchImovelUrl = '@Url.Action("BuscarImovel", "Home")';
+    const iconPaths = {
+      area: '@Url.Content("~/img/icone_tamanho.jpg")',
+      vagas: '@Url.Content("~/img/icone_carro.jpg")',
+      dorms: '@Url.Content("~/img/icone_dormitorio.jpg")'
+    };
+
+    function setCardLoading(card, isLoading) {
+      if (!card) return;
+      card.classList.toggle('is-loading', Boolean(isLoading));
+      const button = card.querySelector('.btn-buscar-imovel');
+      if (button) {
+        button.disabled = Boolean(isLoading);
+      }
+    }
+
+    function setFeedback(element, message, state) {
+      if (!element) return;
+      element.textContent = message || '';
+      if (state) {
+        element.dataset.state = state;
+      } else {
+        delete element.dataset.state;
+      }
+    }
+
+    function clearFeedback(element, expectedState) {
+      if (!element) return;
+      if (!expectedState || element.dataset.state === expectedState) {
+        element.textContent = '';
+        delete element.dataset.state;
+      }
+    }
+
+    function buildDetalhesMarkup(data) {
+      if (!data) return '';
+      const parts = [];
+      if (data.areaFormatada) {
+        parts.push(`<span class="detalhe-item"><img src="${iconPaths.area}" alt="" /> ${data.areaFormatada}</span>`);
+      }
+      if (data.vagas !== null && data.vagas !== undefined && `${data.vagas}`.trim() !== '') {
+        parts.push(`<span class="detalhe-item"><img src="${iconPaths.vagas}" alt="" /> ${data.vagas}</span>`);
+      }
+      if (data.dormitorios !== null && data.dormitorios !== undefined && `${data.dormitorios}`.trim() !== '') {
+        parts.push(`<span class="detalhe-item"><img src="${iconPaths.dorms}" alt="" /> ${data.dormitorios}</span>`);
+      }
+      return parts.join('<span class="detalhe-sep">|</span>');
+    }
+
+    function updateCardFromData(card, data) {
+      if (!card || !data) return;
+      const codigoInput = card.querySelector('.codigo-imovel-input');
+      const tituloInput = card.querySelector('.titulo-imovel-input');
+      const overlay = card.querySelector('.unidade-codigo-overlay');
+      const fotoImg = card.querySelector('.unidade-foto');
+      const fotoPlaceholder = card.querySelector('.unidade-foto-placeholder');
+      const promocaoBadge = card.querySelector('.unidade-promocao-overlay');
+      const detalhesContainer = card.querySelector('[data-role="detalhes"]');
+      const valorNode = card.querySelector('[data-role="valor"]');
+
+      let codigoNormalizado = (data.codigo || (codigoInput && codigoInput.value) || '').trim();
+      codigoNormalizado = codigoNormalizado.toUpperCase();
+
+      if (codigoInput) {
+        codigoInput.value = codigoNormalizado;
+      }
+
+      if (overlay) {
+        overlay.textContent = codigoNormalizado.length > 0 ? codigoNormalizado : 'CÓDIGO';
+      }
+
+      if (fotoImg) {
+        if (data.foto) {
+          fotoImg.src = data.foto;
+          fotoImg.style.display = 'block';
+        } else {
+          fotoImg.removeAttribute('src');
+          fotoImg.style.display = 'none';
+        }
+      }
+      if (fotoPlaceholder) {
+        fotoPlaceholder.style.display = data.foto ? 'none' : 'flex';
+      }
+
+      if (promocaoBadge) {
+        if (data.promocao) {
+          promocaoBadge.textContent = data.promocao;
+          promocaoBadge.style.display = 'inline-block';
+        } else {
+          promocaoBadge.textContent = '';
+          promocaoBadge.style.display = 'none';
+        }
+      }
+
+      if (detalhesContainer) {
+        detalhesContainer.innerHTML = buildDetalhesMarkup(data);
+      }
+
+      if (valorNode) {
+        const valor = (data.valorFormatado || '').trim();
+        valorNode.textContent = valor ? (valor.startsWith('R$') ? valor : `R$ ${valor}`) : '';
+      }
+
+      if (tituloInput) {
+        const previousAutoTitle = card.dataset.autoTitle || '';
+        const currentValue = tituloInput.value.trim();
+        const novoAuto = (data.tituloSugestao || '').trim();
+        card.dataset.autoTitle = novoAuto;
+        if (!currentValue || currentValue === previousAutoTitle) {
+          tituloInput.value = novoAuto;
+        }
+      }
+    }
+
+    async function buscarImovel(card) {
+      if (!card) return;
+      const codigoInput = card.querySelector('.codigo-imovel-input');
+      const feedback = card.querySelector('.unidade-feedback');
+      if (!codigoInput) return;
+
+      const codigo = codigoInput.value.trim();
+      if (!codigo) {
+        setFeedback(feedback, 'Informe o código do imóvel.', 'error');
+        return;
+      }
+
+      setCardLoading(card, true);
+      setFeedback(feedback, 'Buscando imóvel...', 'loading');
+
+      try {
+        const response = await fetch(`${fetchImovelUrl}?codigo=${encodeURIComponent(codigo)}`, {
+          headers: { 'Accept': 'application/json' }
         });
 
+        let payload;
+        try {
+          payload = await response.json();
+        } catch (err) {
+          payload = null;
+        }
 
-    </script>
-} 
+        if (!response.ok || !payload || payload.success !== true) {
+          const message = payload && payload.message ? payload.message : 'Não encontramos esse imóvel. Verifique o código.';
+          setFeedback(feedback, message, 'error');
+          return;
+        }
+
+        updateCardFromData(card, payload.imovel || {});
+        setFeedback(feedback, 'Imóvel atualizado!', 'success');
+        window.setTimeout(() => clearFeedback(feedback, 'success'), 4000);
+      } catch (error) {
+        console.error(error);
+        setFeedback(feedback, 'Erro ao buscar o imóvel. Tente novamente.', 'error');
+      } finally {
+        setCardLoading(card, false);
+      }
+    }
+
+    const cards = Array.from(document.querySelectorAll('.unidade-card'));
+    cards.forEach(card => {
+      const codigoInput = card.querySelector('.codigo-imovel-input');
+      const buscarBtn = card.querySelector('.btn-buscar-imovel');
+      const feedback = card.querySelector('.unidade-feedback');
+      const overlay = card.querySelector('.unidade-codigo-overlay');
+
+      const syncOverlay = () => {
+        if (!overlay || !codigoInput) return;
+        const value = (codigoInput.value || '').trim().toUpperCase();
+        overlay.textContent = value.length > 0 ? value : 'CÓDIGO';
+      };
+
+      if (codigoInput) {
+        codigoInput.addEventListener('input', () => {
+          codigoInput.value = (codigoInput.value || '').toUpperCase();
+          syncOverlay();
+          if (feedback && feedback.dataset.state === 'error') {
+            clearFeedback(feedback);
+          }
+        });
+
+        codigoInput.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            buscarImovel(card);
+          }
+        });
+
+        syncOverlay();
+      }
+
+      if (buscarBtn) {
+        buscarBtn.addEventListener('click', () => buscarImovel(card));
+      }
+    });
+
+    const grid = document.querySelector('.email-unidades-grid');
+    const tipoExibicaoRadios = document.querySelectorAll('input[name="TipoExibicao"]');
+    tipoExibicaoRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        if (!grid || !radio.checked) return;
+        if (radio.value === '1') {
+          grid.classList.add('grid-um');
+          grid.classList.remove('grid-dois');
+        } else {
+          grid.classList.add('grid-dois');
+          grid.classList.remove('grid-um');
+        }
+      });
+    });
+  })();
+</script>
+}
